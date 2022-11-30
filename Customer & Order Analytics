@@ -21,3 +21,6 @@ GROUP BY product;
 SELECT count(distinct customers.acctnum), avg(FebSales.Quantity*FebSales.price) FROM FebSales LEFT JOIN customers 
 ON FebSales.orderID = customers.order_id
 WHERE FebSales.Quantity>2;
+
+/*List all the products sold in Los Angeles in February, and include how many of each were sold. */
+SELECT Product, SUM(Quantity), location FROM BIT_DB.FebSales WHERE location like '%Los Angeles%' GROUP BY Product;
