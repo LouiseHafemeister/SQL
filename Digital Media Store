@@ -94,3 +94,59 @@ JOIN invoices ON invoices.CustomerId = customers.CustomerId
 WHERE invoices.InvoiceDate like '2009%'
 GROUP BY EmployeeId
 ORDER BY TotaL desc LIMIT 1;
+
+-- Questions and answers I created
+-- #15 What country had the most sales?
+SELECT invoices.BillingCountry AS Country, count(invoices.BillingCountry) AS Count
+FROM invoices
+GROUP BY invoices.BillingCountry;
+
+-- #16 Average amount spent in one transaction?
+SELECT ROUND(AVG(invoices.Total),2) AS Avg_Sale_Ammount FROM invoices;
+
+-- #17 Total sales per agent per year ?
+SELECT strftime('%Y', invoices.InvoiceDate) AS Year, ROUND(SUM(invoices.Total), 2) AS Total, employees.FirstName as agent_first_name, employees.LastName as agent_last_name
+FROM employees
+JOIN customers
+ON customers.SupportRepId = employees.EmployeeId
+JOIN invoices ON invoices.CustomerId = customers.CustomerId
+GROUP BY EmployeeId, Year
+ORDER BY Year;
+
+-- #18 Select track name, artist, and composer 
+SELECT tracks.Name AS Track ,artists.Name AS Artist, tracks.Composer FROM tracks
+JOIN artists
+ON artists.ArtistId = albums.ArtistId
+JOIN albums
+ON albums.AlbumId = tracks.AlbumId;
+
+-- #19 Which track made the most money per year?
+WITH cte AS (
+SELECT strftime('%Y', invoices.InvoiceDate) AS Year, tracks.Name AS Track, ROUND(SUM(invoices.Total),2) AS Total
+FROM tracks
+JOIN invoices 
+ON invoices.InvoiceId = invoice_items.InvoiceId
+JOIN invoice_items
+ON invoice_items.TrackId = tracks.TrackId
+GROUP BY tracks.Name
+)
+
+SELECT Year, Track, MAX(Total) AS Total
+FROM cte
+GROUP BY Year;
+
+-- #20 Playlist name, track, album, artist, genere
+SELECT playlists.Name AS Playlist, tracks.Name AS Track, albums.Title AS Album, artists.Name AS Artist, genres.Name AS Genre
+FROM playlists
+JOIN tracks
+ON tracks.TrackId = playlist_track.TrackId
+JOIN playlist_track
+ON playlist_track.PlaylistId = playlists.PlaylistId
+JOIN albums
+ON albums.AlbumId = tracks.AlbumId
+JOIN artists
+ON artists.ArtistId = albums.ArtistId
+JOIN genres
+ON genres.GenreId = tracks.GenreId
+WHERE playlists.PlaylistId <> 7 AND playlists.PlaylistId <> 8 AND playlists.PlaylistId <> 10
+ORDER BY Track;
