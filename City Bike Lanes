@@ -81,7 +81,7 @@ INSERT INTO BIT_DB.CityBikeLanes values(60,2002, 2021,"Mouse",4.5,4.3,"no");
 SELECT * FROM CityBikeLanes LIMIT 10;
 SELECT * FROM CityBikeLanes WHERE street='Walnut';
 
--- list of all the bike lanes that have an average safety rating of 4.0 or higher verage safety rating for each of those bike lanes, and a label that says "Safe Lane"
+-- list of all the bike lanes that have an average safety rating of 4.0 or higher average safety rating for each of those bike lanes, and a label that says "Safe Lane"
 -- to do this I used a temporary table
 WITH safety_average_cte AS (
 SELECT b.street, AVG(b.safetyrating) AS avg_safety_rating
