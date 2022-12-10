@@ -1,6 +1,6 @@
 # For this project, I downloaded data from the Break into Tech course, it represents a digital media store and includes tables for artists, albums, media tracks, invoices, and customers. 
-# I then performed analytics on the data using SQL to answer the provided by Break into Tech. These are the first 14 questions.
-# Finally, I came up with questions of my own and again used SQL to answer them.
+# I then performed analytics on the data using SQL to answer the provided by Break into Tech. (#1-14)
+# Finally, I came up with questions of my own and again used SQL to answer them. (#15 - 20)
 
 -- #1 Show Customers (their full names, customer ID, and country) who are not in the US.
 SELECT FirstName, LastName, CustomerId, Country 
