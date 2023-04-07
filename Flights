@@ -61,5 +61,11 @@ SELECT sum(flights)
 FROM flights
 WHERE Passengers = "0";
 
+-- #10 Number of passengers per flight 
+SELECT Origin_City, Destination_City, Fly_Date, Flights, Passengers, Passengers/Flights AS "Pass_per_flight"
+FROM flights
+ORDER BY Pass_per_flight desc;
+
+
 
 --PROJECT IN PROGRESS
