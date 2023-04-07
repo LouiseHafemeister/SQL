@@ -3,9 +3,57 @@
 
 -- Getting to know the data
 SELECT * FROM flights LIMIT 10;
+SELECT sum(Flights) as num_flights FROM flights; 134,277,302 flights in 19 years
 
--- How many flights originated from Toledo?
-SELECT count(Origin_City) FROM flights WHERE Origin_City = "Toledo";
-7450
+-- #1 How many flights originated from Toledo? 163127
+SELECT sum(Flights)
+FROM flights 
+WHERE Origin_City = "Toledo";
+
+-- #2 Count how many flghts to each destination that originated from Toledo and order by quanitity of flights. Chigaco had the most at 671
+SELECT Origin_City, Destination_City, sum(Flights) AS num_flights
+FROM flights
+WHERE Origin_City = "Toledo"
+GROUP BY Destination_City
+ORDER BY num_flights desc;
+
+-- #3 Count how many flights from Toledo per year & month
+SELECT Origin_City, Fly_date, sum(Flights) AS num_flights
+FROM flights
+WHERE Origin_City = "Toledo"
+GROUP BY Fly_date
+ORDER BY Fly_date;
+
+-- #4 Count how many flights from Toledo per year
+SELECT Origin_City, SUBSTR(Fly_date,1,4) AS Year, sum(Flights) AS num_flights
+FROM flights
+WHERE Origin_City = "Toledo"
+GROUP BY Year
+ORDER BY Year;
+
+-- #5 How many total flights per year?
+SELECT SUBSTR(Fly_date,1,4) AS Year, sum(Flights) AS num_flights
+FROM flights
+GROUP BY Year
+ORDER BY Year;
+
+-- #6 How many flights per month?
+SELECT SUBSTR(Fly_date, 5, 2) AS Month, sum(Flights) AS num_flights
+FROM flights
+GROUP BY Month
+ORDER BY Month;
+
+-- #7 Number of flights per origin city 
+SELECT Origin_City, sum(Flights)
+FROM flights 
+GROUP BY Origin_City
+ORDER BY sum(Flights) desc;
+
+-- #8 Number of flights per destination city
+SELECT Destination_City, sum(Flights)
+FROM flights 
+GROUP BY Destination_City
+ORDER BY sum(Flights) desc;
+
 
 --PROJECT IN PROGRESS
