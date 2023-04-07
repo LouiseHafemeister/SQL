@@ -4,6 +4,7 @@
 -- Getting to know the data
 SELECT * FROM flights LIMIT 10;
 SELECT sum(Flights) as num_flights FROM flights; 134,277,302 flights in 19 years
+SELECT sum(Passengers) FROM flights; 9,698,370,196 passengers in 19 years
 
 -- #1 How many flights originated from Toledo? 163127
 SELECT sum(Flights)
@@ -54,6 +55,11 @@ SELECT Destination_City, sum(Flights)
 FROM flights 
 GROUP BY Destination_City
 ORDER BY sum(Flights) desc;
+
+-- #9 Number of flights with zero passengers? 3,484,338
+SELECT sum(flights)
+FROM flights
+WHERE Passengers = "0";
 
 
 --PROJECT IN PROGRESS
