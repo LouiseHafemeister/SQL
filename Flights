@@ -1,0 +1,11 @@
+-- US domestic flights from 1990 to 2009 Retrieved from kaggle.com 
+-- I will be focusing on the Toledo Ohio airport for the first few quieries due to it being my hometown. 
+
+-- Getting to know the data
+SELECT * FROM flights LIMIT 10;
+
+-- How many flights originated from Toledo?
+SELECT count(Origin_City) FROM flights WHERE Origin_City = "Toledo";
+7450
+
+--PROJECT IN PROGRESS
