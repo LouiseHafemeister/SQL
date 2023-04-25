@@ -71,6 +71,7 @@ ORDER BY Pass_per_flight desc;
 -- #11 Keep a running total of the number of flights per month for Toledo
 -- The problem with this query is that the flights are in no particular order, besides the flight date there isn't an id, or flight number to keep track 
 -- which flight was first in the month of january. Having a running total isn't the most logical given the data.
+-- Window function --
 SELECT Origin_City, Destination_City, Fly_Date, Flights, SUM(Flights)
 OVER(
 PARTITION BY Fly_Date
@@ -79,6 +80,7 @@ FROM flights
 WHERE Origin_City = "Toledo";
 
 -- #12 Show all the flights from Toledo where there are more passengers than average
+-- Subquery --
 SELECT * 
 FROM flights 
 WHERE Origin_City = "Toledo" AND Passengers > (
