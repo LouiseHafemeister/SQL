@@ -92,3 +92,299 @@ WHERE website_sessions.created_at > '2012-04-15'
 GROUP BY 
 	YEAR(created_at),
 	WEEK(created_at);
+
+-- getting use to temporary tables
+CREATE TEMPORARY TABLE first__pageview
+SELECT 
+	website_session_id,
+    MIN(website_pageview_id) AS min_pv_id
+FROM  website_pageviews
+WHERE website_pageview_id < 1000
+GROUP BY website_session_id;
+
+SELECT 
+	website_pageviews.pageview_url AS landing_page,
+    COUNT(DISTINCT first__pageview.website_session_id) AS sessions_hitting_this_lander
+FROM first__pageview
+	LEFT JOIN website_pageviews
+		ON first__pageview.min_pv_id = website_pageviews.website_pageview_id
+GROUP BY 
+	website_pageviews.pageview_url;
+
+-- which page view had the most sessions ranked
+SELECT 
+	pageview_url,
+	COUNT(DISTINCT website_pageviews.website_pageview_id) AS PV
+FROM website_pageviews
+WHERE created_at < '2012-06-09'
+GROUP BY 
+	pageview_url
+ORDER BY 
+	PV DESC;
+    
+-- top entry pages/landing page
+CREATE TEMPORARY TABLE first_pageviewed
+SELECT 
+	website_session_id,
+    MIN(website_pageview_id) AS min_pv_id
+FROM  website_pageviews
+WHERE created_at < '2012-06-12'
+GROUP BY website_session_id;
+
+SELECT 
+	website_pageviews.pageview_url AS landing_page,
+    COUNT(DISTINCT first_pageviewed.website_session_id) AS sessions_hitting_this_lander
+FROM first_pageviewed
+	LEFT JOIN website_pageviews
+		ON first_pageviewed.min_pv_id = website_pageviews.website_pageview_id
+GROUP BY 
+	website_pageviews.pageview_url;
+
+-- find number of sessions, number of bounced sessions, and what percent bounced
+/*CREATE TEMPORARY TABLE first_pageviews_1 */
+SELECT 
+	website_pageviews.website_session_id,
+    MIN(website_pageviews.website_pageview_id) AS min_pageview_id
+FROM website_pageviews
+	INNER JOIN website_sessions
+		ON website_sessions.website_session_id = website_pageviews.website_session_id
+        AND website_sessions.created_at <'2012-06-14'
+GROUP BY 
+	website_pageviews.website_session_id;
+    
+CREATE TEMPORARY TABLE sessions_v_landing_page
+SELECT 
+	first_pageviews_1.website_session_id,
+	website_pageviews.pageview_url AS landing_page
+FROM first_pageviews_1
+	JOIN website_pageviews
+		ON website_pageviews.website_pageview_id = first_pageviews_1.min_pageview_id;
+  
+CREATE TEMPORARY TABLE bounced_sessions_only
+SELECT 
+	sessions_v_landing_page.website_session_id,
+    sessions_v_landing_page.landing_page,
+    COUNT(website_pageviews.website_pageview_id) AS count_of_pages_viewed
+FROM sessions_v_landing_page
+	LEFT JOIN website_pageviews
+		ON website_pageviews.website_session_id = sessions_v_landing_page.website_session_id
+GROUP BY 
+	sessions_v_landing_page.website_session_id,
+	sessions_v_landing_page.landing_page
+HAVING
+	COUNT(website_pageviews.website_pageview_id) = 1;
+
+SELECT 
+	sessions_v_landing_page.landing_page,
+	COUNT(DISTINCT sessions_v_landing_page.website_session_id) AS sessions,
+    COUNT(DISTINCT bounced_sessions_only.website_session_id) AS bounced_sessions,
+    COUNT(DISTINCT bounced_sessions_only.website_session_id) / COUNT(DISTINCT sessions_v_landing_page.website_session_id) 
+		AS bounce_rate
+FROM sessions_v_landing_page
+	LEFT JOIN bounced_sessions_only
+		ON sessions_v_landing_page.website_session_id = bounced_sessions_only.website_session_id
+GROUP BY sessions_v_landing_page.landing_page; 
+
+
+-- new landing page open, whats the bounce rate for it compared to old home page
+-- first find when new landing page opened July 19, 2012
+SELECT created_at, pageview_url
+FROM website_pageviews
+WHERE 
+	pageview_url = '/lander-1'
+ORDER BY 
+	created_at ASC
+LIMIT 1;
+
+-- 50/50 comparison for new landing page 
+CREATE TEMPORARY TABLE first_pageviews_10
+SELECT 
+	website_pageviews.website_session_id,
+    MIN(website_pageviews.website_pageview_id) AS min_pageview_id
+FROM website_pageviews
+	INNER JOIN website_sessions
+		ON website_sessions.website_session_id = website_pageviews.website_session_id
+WHERE website_sessions.created_at > '2012-06-19' 
+	AND website_sessions.created_at <'2012-07-28'
+	AND utm_source = 'gsearch' 
+    AND utm_campaign = 'nonbrand'
+GROUP BY 
+	website_pageviews.website_session_id;
+    
+CREATE TEMPORARY TABLE sessions_v_landing_page_10
+SELECT 
+	first_pageviews_10.website_session_id,
+	website_pageviews.pageview_url AS landing_page
+FROM first_pageviews_10
+	JOIN website_pageviews
+		ON website_pageviews.website_pageview_id = first_pageviews_10.min_pageview_id;
+  
+CREATE TEMPORARY TABLE bounced_sessions_only_10
+SELECT 
+	sessions_v_landing_page_10.website_session_id,
+    sessions_v_landing_page_10.landing_page,
+    COUNT(website_pageviews.website_pageview_id) AS count_of_pages_viewed
+FROM sessions_v_landing_page_10
+	LEFT JOIN website_pageviews
+		ON website_pageviews.website_session_id = sessions_v_landing_page_10.website_session_id
+GROUP BY 
+	sessions_v_landing_page_10.website_session_id,
+	sessions_v_landing_page_10.landing_page
+HAVING
+	COUNT(website_pageviews.website_pageview_id) = 1;
+
+
+SELECT 
+	sessions_v_landing_page_10.landing_page,
+	COUNT(DISTINCT sessions_v_landing_page_10.website_session_id) AS sessions,
+    COUNT(DISTINCT bounced_sessions_only_10.website_session_id) AS bounced_sessions,
+    COUNT(DISTINCT bounced_sessions_only_10.website_session_id) / COUNT(DISTINCT sessions_v_landing_page_10.website_session_id) 
+		AS bounce_rate
+FROM sessions_v_landing_page_10
+	LEFT JOIN bounced_sessions_only_10
+		ON sessions_v_landing_page_10.website_session_id = bounced_sessions_only_10.website_session_id
+GROUP BY sessions_v_landing_page_10.landing_page; 
+
+
+
+
+-- Weekly trend for bounce rate and landing page for gsearch and nonbrand from June 1st - August 31st 2012
+-- Landing page analysis
+
+CREATE TEMPORARY TABLE sessions_min_pv_id_and_view_count
+SELECT 
+	website_pageviews.website_session_id,
+    MIN(website_pageviews.website_pageview_id) AS min_pageview_id,
+    COUNT(website_pageviews.website_pageview_id) AS count_pageviews
+FROM website_sessions
+	LEFT JOIN website_pageviews
+		ON website_sessions.website_session_id = website_pageviews.website_session_id
+WHERE website_sessions.created_at > '2012-06-01' 
+	AND website_sessions.created_at <'2012-08-31'
+	AND utm_source = 'gsearch' 
+    AND utm_campaign = 'nonbrand'
+GROUP BY 
+	website_pageviews.website_session_id;
+ 
+ 
+CREATE TEMPORARY TABLE session_counts_lander_created_at
+SELECT 
+	sessions_min_pv_id_and_view_count.website_session_id,
+    sessions_min_pv_id_and_view_count.min_pageview_id,
+    sessions_min_pv_id_and_view_count.count_pageviews,
+    website_pageviews.pageview_url AS landing_page,
+    website_pageviews.created_at AS session_created_at
+FROM sessions_min_pv_id_and_view_count
+	LEFT JOIN website_pageviews
+		ON sessions_min_pv_id_and_view_count.min_pageview_id = website_pageviews.website_pageview_id;
+
+
+
+SELECT 
+	-- YEARWEEK(session_created_at) AS Year_Week,
+    MIN(DATE(session_created_at)) AS Week_Start_Date,
+	-- COUNT(DISTINCT website_session_id) AS Total_Sessions,
+    -- COUNT(DISTINCT CASE WHEN count_pageviews = 1 THEN website_session_id ELSE NULL END) AS bounced_sessions,
+    COUNT(DISTINCT CASE WHEN count_pageviews = 1 THEN website_session_id ELSE NULL END) *1.0 / COUNT(DISTINCT website_session_id) AS bounce_rate,
+    COUNT(DISTINCT CASE WHEN landing_page = '/home' THEN website_session_id ELSE NULL END) AS home_sessions,
+    COUNT(DISTINCT CASE WHEN landing_page = '/lander-1' THEN website_session_id ELSE NULL END) AS lander_sessions
+FROM session_counts_lander_created_at
+GROUP BY 
+	YEARWEEK(session_created_at); 
+
+-- Getting to know subqueries, conversion funnels
+
+CREATE TEMPORARY TABLE session_level_made_it_flags
+SELECT 
+website_session_id,
+MAX(products_page) AS product_made_it,
+MAX(mrfuzzy_page) AS mrfuzzy_made_it,
+MAX(cart_page) AS cart_made_it
+FROM(
+
+SELECT
+	website_sessions.website_session_id,
+	website_pageviews.pageview_url,
+	CASE WHEN pageview_url = '/products' THEN 1 ELSE 0 END AS products_page,
+	CASE WHEN pageview_url = '/the-original-mr-fuzzy' THEN 1 ELSE 0 END AS mrfuzzy_page,
+	CASE WHEN pageview_url = '/cart' THEN 1 ELSE 0 END AS cart_page
+FROM website_sessions
+	LEFT JOIN website_pageviews
+		ON website_sessions.website_session_id = website_pageviews.website_session_id
+WHERE website_sessions.created_at BETWEEN '2014-01-01' AND '2014-02-01'
+	AND website_pageviews.pageview_url IN ('/lander-2','/products','/the-original-mr-fuzzy','/cart')
+ORDER BY 
+	website_sessions.website_session_id,
+    website_pageviews.created_at
+) AS pageview_level
+
+GROUP BY 
+website_session_id;
+
+SELECT
+	COUNT(DISTINCT website_session_id) AS sessions,
+    COUNT(DISTINCT CASE WHEN product_made_it = 1 THEN website_session_id ELSE NULL END)
+		/COUNT(DISTINCT website_session_id) AS lander_clickthrough_rate,
+	COUNT(DISTINCT CASE WHEN mrfuzzy_made_it = 1 THEN website_session_id ELSE NULL END)
+		/COUNT(DISTINCT CASE WHEN product_made_it = 1 THEN website_session_id ELSE NULL END) AS pruduct_clickthrough_rate,
+	COUNT(DISTINCT CASE WHEN cart_made_it = 1 THEN website_session_id ELSE NULL END) 
+		/COUNT(DISTINCT CASE WHEN mrfuzzy_made_it = 1 THEN website_session_id ELSE NULL END) AS mr_fuzzy_clickthrough_rate
+    FROM session_level_made_it_flags;
+    
+-- Build a conversion funnel for lander-1 where source is gsearch and dates between August 5th and September 5th 2012
+-- CREATE TEMPORARY TABLE session_level_made_it_flags_4
+SELECT 
+website_session_id,
+MAX(products_page) AS product_made_it,
+MAX(mrfuzzy_page) AS mrfuzzy_made_it,
+MAX(cart_page) AS cart_made_it,
+MAX(shipping_page) AS shipping_made_it,
+MAX(billing_page) AS billing_made_it,
+MAX(thankyou_page) AS thankyou_made_it
+FROM(
+SELECT
+	website_sessions.website_session_id,
+	website_pageviews.pageview_url,
+	CASE WHEN pageview_url = '/products' THEN 1 ELSE 0 END AS products_page,
+	CASE WHEN pageview_url = '/the-original-mr-fuzzy' THEN 1 ELSE 0 END AS mrfuzzy_page,
+	CASE WHEN pageview_url = '/cart' THEN 1 ELSE 0 END AS cart_page,
+    CASE WHEN pageview_url = '/shipping' THEN 1 ELSE 0 END AS shipping_page,
+    CASE WHEN pageview_url = '/billing' THEN 1 ELSE 0 END AS billing_page,
+    CASE WHEN pageview_url = '/thank-you-for-your-order' THEN 1 ELSE 0 END AS thankyou_page
+FROM website_sessions
+	LEFT JOIN website_pageviews
+		ON website_sessions.website_session_id = website_pageviews.website_session_id
+WHERE website_sessions.created_at BETWEEN '2012-08-05' AND '2012-09-05'
+	AND website_pageviews.pageview_url IN ('/lander-1','/products','/the-original-mr-fuzzy','/cart', '/shipping','/billing','/thank-you-for-your-order')
+    AND utm_source = 'gsearch'
+    AND utm_campaign = 'nonbrand'
+ORDER BY 
+	website_sessions.website_session_id,
+    website_pageviews.created_at
+) AS pageview_level
+GROUP BY 
+website_session_id;
+
+SELECT
+	COUNT(DISTINCT website_session_id) AS sessions,
+    COUNT(DISTINCT CASE WHEN product_made_it = 1 THEN website_session_id ELSE NULL END)
+		/COUNT(DISTINCT website_session_id) AS lander_clickthrough_rate,
+	COUNT(DISTINCT CASE WHEN mrfuzzy_made_it = 1 THEN website_session_id ELSE NULL END)
+		/COUNT(DISTINCT CASE WHEN product_made_it = 1 THEN website_session_id ELSE NULL END) AS pruduct_clickthrough_rate,
+	COUNT(DISTINCT CASE WHEN cart_made_it = 1 THEN website_session_id ELSE NULL END) 
+		/COUNT(DISTINCT CASE WHEN mrfuzzy_made_it = 1 THEN website_session_id ELSE NULL END) AS mr_fuzzy_clickthrough_rate,
+	COUNT(DISTINCT CASE WHEN shipping_made_it = 1 THEN website_session_id ELSE NULL END)
+		/COUNT(DISTINCT CASE WHEN cart_made_it = 1 THEN website_session_id ELSE NULL END) AS cart_clickthrough_rate,
+    COUNT(DISTINCT CASE WHEN billing_made_it = 1 THEN website_session_id ELSE NULL END)
+		/COUNT(DISTINCT CASE WHEN shipping_made_it = 1 THEN website_session_id ELSE NULL END) AS shipping_clickthrough_rate,
+    COUNT(DISTINCT CASE WHEN thankyou_made_it = 1 THEN website_session_id ELSE NULL END)
+		/COUNT(DISTINCT CASE WHEN billing_made_it = 1 THEN website_session_id ELSE NULL END) AS billing_clickthrough_rate
+FROM session_level_made_it_flags_4;
+
+-- Conversiton funnel for new billing page, find first date billing-2 used
+SELECT created_at, pageview_url
+FROM website_pageviews
+WHERE 
+	pageview_url = '/billing-2'
+ORDER BY 
+	created_at ASC;
