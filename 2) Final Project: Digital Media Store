@@ -3,7 +3,10 @@
 # Finally, I came up with questions of my own and again used SQL to answer them. (#15 - 20)
 
 -- #1 Show Customers (their full names, customer ID, and country) who are not in the US.
-SELECT FirstName, LastName, CustomerId, Country 
+SELECT FirstName
+  , LastName
+  , CustomerId
+  , Country 
 FROM customers
 WHERE Country <> 'USA';
 
@@ -13,10 +16,14 @@ FROM customers
 WHERE Country = 'Brazil';
 
 -- #3 Find the Invoices of customers who are from Brazil. The resulting table should show the customer's full name, Invoice ID, Date of the invoice, and billing country.
-SELECT customers.FirstName, customers.LastName, invoices.InvoiceID, date(invoices.InvoiceDate) as InvoiceDate, invoices.BillingCountry
+SELECT customers.FirstName
+  , customers.LastName
+  , invoices.InvoiceID
+  , date(invoices.InvoiceDate) as InvoiceDate
+  , invoices.BillingCountry
 FROM customers
 JOIN invoices
-ON customers.CustomerId = invoices.CustomerId
+  ON customers.CustomerId = invoices.CustomerId
 WHERE customers.Country = 'Brazil';
 
 -- #4 Show the Employees who are Sales Agents.
@@ -29,123 +36,164 @@ SELECT distinct BillingCountry
 FROM invoices;
 
 -- #6 Provide a query that shows the invoices associated with each sales agent. The resulting table should include the Sales Agent's full name.
-SELECT employees.FirstName, employees.LastName, invoices.InvoiceId
+SELECT employees.FirstName
+  , employees.LastName
+  , invoices.InvoiceId
 FROM employees
 JOIN customers
-ON customers.SupportRepId = employees.EmployeeId
-JOIN invoices ON invoices.CustomerId = customers.CustomerId;
+  ON customers.SupportRepId = employees.EmployeeId
+JOIN invoices 
+  ON invoices.CustomerId = customers.CustomerId;
 
 -- #7 Show the Invoice Total, Customer name, Country, and Sales Agent name for all invoices and customers.
-SELECT invoices.Total, customers.FirstName as cus_first_name, customers.LastName as cus_last_name, invoices.BillingCountry, employees.FirstName as agent_first_name, employees.LastName as agent_last_name
+SELECT invoices.Total
+  , customers.FirstName as cus_first_name
+  , customers.LastName as cus_last_name
+  , invoices.BillingCountry
+  , employees.FirstName as agent_first_name
+  , employees.LastName as agent_last_name
 FROM employees
 JOIN customers
-ON customers.SupportRepId = employees.EmployeeId
-JOIN invoices ON invoices.CustomerId = customers.CustomerId;
+  ON customers.SupportRepId = employees.EmployeeId
+JOIN invoices 
+  ON invoices.CustomerId = customers.CustomerId;
 
 -- #8 How many Invoices were there in 2009?
-SELECT count(invoices.InvoiceId) as how_many_invoices FROM invoices WHERE invoices.InvoiceDate like '2009%';
+SELECT count(invoices.InvoiceId) as how_many_invoices 
+FROM invoices 
+WHERE invoices.InvoiceDate like '2009%';
   
 -- #9 What are the total sales for 2009?
-SELECT SUM(invoices.Total) as Total FROM invoices WHERE invoices.InvoiceDate like '2009%';
+SELECT SUM(invoices.Total) as Total 
+FROM invoices 
+WHERE invoices.InvoiceDate like '2009%';
   
 -- #10 Write a query that includes the purchased track name with each invoice line ID.
-SELECT invoice_items.InvoiceLineId, tracks.Name FROM tracks
+SELECT invoice_items.InvoiceLineId
+  , tracks.Name FROM tracks
 JOIN invoice_items
-ON invoice_items.TrackId = tracks.TrackId
+  ON invoice_items.TrackId = tracks.TrackId
 ORDER BY InvoiceLineId;
 
 -- #11 Write a query that includes the purchased track name AND artist name with each invoice line ID.
-SELECT artists.Name as Artist, tracks.Name as Title, invoice_items.InvoiceLineId 
+SELECT artists.Name as Artist
+  , tracks.Name as Title
+  , invoice_items.InvoiceLineId 
 FROM invoice_items
 LEFT JOIN tracks
-ON invoice_items.TrackId = tracks.TrackId
+  ON invoice_items.TrackId = tracks.TrackId
 INNER JOIN albums
-ON albums.AlbumId = tracks.AlbumId
+  ON albums.AlbumId = tracks.AlbumId
 LEFT JOIN artists
-ON artists.ArtistId = albums.ArtistId
+  ON artists.ArtistId = albums.ArtistId
 ORDER BY InvoiceLineId;
 
 -- #12 Provide a query that shows all the Tracks, and include the Album name, Media type, and Genre.
 SELECT * FROM media_types LIMIT 10;
-SELECT tracks.Name AS Track, albums.Title AS Album, media_types.Name AS Media_Type, genres.Name AS Genre
+SELECT tracks.Name AS Track, albums.Title AS Album
+  , media_types.Name AS Media_Type
+  , genres.Name AS Genre
 FROM tracks
 JOIN albums
-ON albums.AlbumId = tracks.AlbumId
+  ON albums.AlbumId = tracks.AlbumId
 JOIN media_types
-ON media_types.MediaTypeId = tracks.MediaTypeId
+  ON media_types.MediaTypeId = tracks.MediaTypeId
 JOIN genres
-ON genres.GenreId = tracks.GenreId
+  ON genres.GenreId = tracks.GenreId
 ORDER BY Track;
 
 -- #13 Show the total sales made by each sales agent.
-SELECT ROUND(SUM(invoices.Total), 2) AS Total, employees.FirstName as agent_first_name, employees.LastName as agent_last_name
+SELECT ROUND(SUM(invoices.Total), 2) AS Total
+  , employees.FirstName as agent_first_name
+  , employees.LastName as agent_last_name
 FROM employees
 JOIN customers
-ON customers.SupportRepId = employees.EmployeeId
-JOIN invoices ON invoices.CustomerId = customers.CustomerId
+  ON customers.SupportRepId = employees.EmployeeId
+JOIN invoices 
+  ON invoices.CustomerId = customers.CustomerId
 GROUP BY EmployeeId;
 
 -- #14 Which sales agent made the most dollars in sales in 2009?
-SELECT ROUND(SUM(invoices.Total), 2) AS Total, employees.FirstName as agent_first_name, employees.LastName as agent_last_name
+SELECT ROUND(SUM(invoices.Total), 2) AS Total
+  , employees.FirstName as agent_first_name
+  , employees.LastName as agent_last_name
 FROM employees
 JOIN customers
-ON customers.SupportRepId = employees.EmployeeId
-JOIN invoices ON invoices.CustomerId = customers.CustomerId
+  ON customers.SupportRepId = employees.EmployeeId
+JOIN invoices 
+  ON invoices.CustomerId = customers.CustomerId
 WHERE invoices.InvoiceDate like '2009%'
 GROUP BY EmployeeId
 ORDER BY TotaL desc LIMIT 1;
 
 -- Questions and answers I created
 -- #15 What country had the most sales?
-SELECT invoices.BillingCountry AS Country, count(invoices.BillingCountry) AS Count
+SELECT invoices.BillingCountry AS Country
+  , count(invoices.BillingCountry) AS Count
 FROM invoices
 GROUP BY invoices.BillingCountry;
 
 -- #16 Average amount spent in one transaction?
-SELECT ROUND(AVG(invoices.Total),2) AS Avg_Sale_Ammount FROM invoices;
+SELECT ROUND(AVG(invoices.Total),2) AS Avg_Sale_Ammount 
+FROM invoices;
 
 -- #17 Total sales per agent per year ?
-SELECT strftime('%Y', invoices.InvoiceDate) AS Year, ROUND(SUM(invoices.Total), 2) AS Total, employees.FirstName as agent_first_name, employees.LastName as agent_last_name
+SELECT strftime('%Y', invoices.InvoiceDate) AS Year
+  , ROUND(SUM(invoices.Total), 2) AS Total
+  , employees.FirstName as agent_first_name
+  , employees.LastName as agent_last_name
 FROM employees
 JOIN customers
-ON customers.SupportRepId = employees.EmployeeId
-JOIN invoices ON invoices.CustomerId = customers.CustomerId
+  ON customers.SupportRepId = employees.EmployeeId
+JOIN invoices 
+  ON invoices.CustomerId = customers.CustomerId
 GROUP BY EmployeeId, Year
 ORDER BY Year;
 
 -- #18 Select track name, artist, and composer 
-SELECT tracks.Name AS Track ,artists.Name AS Artist, tracks.Composer FROM tracks
+SELECT tracks.Name AS Track
+  , artists.Name AS Artist
+  , tracks.Composer 
+FROM tracks
 JOIN artists
-ON artists.ArtistId = albums.ArtistId
+  ON artists.ArtistId = albums.ArtistId
 JOIN albums
-ON albums.AlbumId = tracks.AlbumId;
+  ON albums.AlbumId = tracks.AlbumId;
 
 -- #19 Which track made the most money per year?
 WITH cte AS (
-SELECT strftime('%Y', invoices.InvoiceDate) AS Year, tracks.Name AS Track, ROUND(SUM(invoices.Total),2) AS Total
+SELECT strftime('%Y', invoices.InvoiceDate) AS Year
+  , tracks.Name AS Track
+  , ROUND(SUM(invoices.Total),2) AS Total
 FROM tracks
 JOIN invoices 
-ON invoices.InvoiceId = invoice_items.InvoiceId
+  ON invoices.InvoiceId = invoice_items.InvoiceId
 JOIN invoice_items
-ON invoice_items.TrackId = tracks.TrackId
+  ON invoice_items.TrackId = tracks.TrackId
 GROUP BY tracks.Name
 )
 
-SELECT Year, Track, MAX(Total) AS Total
+SELECT Year
+  , Track
+  , MAX(Total) AS Total
 FROM cte
 GROUP BY Year;
 
 -- #20 Playlist name, track, album, artist, genere
-SELECT playlists.Name AS Playlist, tracks.Name AS Track, albums.Title AS Album, artists.Name AS Artist, genres.Name AS Genre
+SELECT playlists.Name AS Playlist
+  , tracks.Name AS Track
+  , albums.Title AS Album
+  , artists.Name AS Artist
+  , genres.Name AS Genre
 FROM playlists
 JOIN tracks
-ON tracks.TrackId = playlist_track.TrackId
+  ON tracks.TrackId = playlist_track.TrackId
 JOIN playlist_track
-ON playlist_track.PlaylistId = playlists.PlaylistId
+  ON playlist_track.PlaylistId = playlists.PlaylistId
 JOIN albums
-ON albums.AlbumId = tracks.AlbumId
+  ON albums.AlbumId = tracks.AlbumId
 JOIN artists
-ON artists.ArtistId = albums.ArtistId
+  ON artists.ArtistId = albums.ArtistId
 JOIN genres
 ON genres.GenreId = tracks.GenreId
 WHERE playlists.PlaylistId <> 7 AND playlists.PlaylistId <> 8 AND playlists.PlaylistId <> 10
