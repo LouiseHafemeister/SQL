@@ -14,46 +14,56 @@ FROM flights
 WHERE Origin_City = "Toledo";
 
 -- #2 Count how many flghts to each destination that originated from Toledo and order by quanitity of flights. Chigaco had the most at 671
-SELECT Origin_City, Destination_City, sum(Flights) AS num_flights
+SELECT Origin_City
+  , Destination_City
+  , sum(Flights) AS num_flights
 FROM flights
 WHERE Origin_City = "Toledo"
 GROUP BY Destination_City
 ORDER BY num_flights desc;
 
 -- #3 Count how many flights from Toledo per year & month
-SELECT Origin_City, Fly_date, sum(Flights) AS num_flights
+SELECT Origin_City
+  , Fly_date
+  , sum(Flights) AS num_flights
 FROM flights
 WHERE Origin_City = "Toledo"
 GROUP BY Fly_date
 ORDER BY Fly_date;
 
 -- #4 Count how many flights from Toledo per year
-SELECT Origin_City, SUBSTR(Fly_date,1,4) AS Year, sum(Flights) AS num_flights
+SELECT Origin_City
+  , SUBSTR(Fly_date,1,4) AS Year
+  , sum(Flights) AS num_flights
 FROM flights
 WHERE Origin_City = "Toledo"
 GROUP BY Year
 ORDER BY Year;
 
 -- #5 How many total flights per year?
-SELECT SUBSTR(Fly_date,1,4) AS Year, sum(Flights) AS num_flights
+SELECT SUBSTR(Fly_date,1,4) AS Year
+  , sum(Flights) AS num_flights
 FROM flights
 GROUP BY Year
 ORDER BY Year;
 
 -- #6 How many flights per month?
-SELECT SUBSTR(Fly_date, 5, 2) AS Month, sum(Flights) AS num_flights
+SELECT SUBSTR(Fly_date, 5, 2) AS Month
+  , sum(Flights) AS num_flights
 FROM flights
 GROUP BY Month
 ORDER BY Month;
 
 -- #7 Number of flights per origin city 
-SELECT Origin_City, sum(Flights)
+SELECT Origin_City
+  , sum(Flights)
 FROM flights 
 GROUP BY Origin_City
 ORDER BY sum(Flights) desc;
 
 -- #8 Number of flights per destination city
-SELECT Destination_City, sum(Flights)
+SELECT Destination_City
+  , sum(Flights)
 FROM flights 
 GROUP BY Destination_City
 ORDER BY sum(Flights) desc;
@@ -64,7 +74,12 @@ FROM flights
 WHERE Passengers = "0";
 
 -- #10 Number of passengers per flight 
-SELECT Origin_City, Destination_City, Fly_Date, Flights, Passengers, Passengers/Flights AS "Pass_per_flight"
+SELECT Origin_City
+  , Destination_City
+  , Fly_Date
+  , Flights
+  , Passengers
+  , Passengers/Flights AS "Pass_per_flight"
 FROM flights
 ORDER BY Pass_per_flight desc;
 
@@ -72,7 +87,10 @@ ORDER BY Pass_per_flight desc;
 -- The problem with this query is that the flights are in no particular order, besides the flight date there isn't an id, or flight number to keep track 
 -- which flight was first in the month of january. Having a running total isn't the most logical given the data.
 -- Window function --
-SELECT Origin_City, Destination_City, Fly_Date, Flights, SUM(Flights)
+SELECT Origin_City
+, Destination_City
+, Fly_Date, Flights
+, SUM(Flights)
 OVER(
 PARTITION BY Fly_Date
 ORDER BY Destination_City) AS "Running_Total"
