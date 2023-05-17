@@ -84,17 +84,21 @@ SELECT * FROM CityBikeLanes WHERE street='Walnut';
 -- list of all the bike lanes that have an average safety rating of 4.0 or higher average safety rating for each of those bike lanes, and a label that says "Safe Lane"
 -- to do this I used a temporary table
 WITH safety_average_cte AS (
-SELECT b.street, AVG(b.safetyrating) AS avg_safety_rating
+SELECT b.street
+    , AVG(b.safetyrating) AS avg_safety_rating
 FROM CityBikeLanes b
 GROUP BY b.street)
 
-SELECT street, avg_safety_rating, 'Safe_Lane' AS Tag
+SELECT street
+    , avg_safety_rating
+    , 'Safe_Lane' AS Tag
 FROM safety_average_cte
 WHERE avg_safety_rating >=4.0;
 
 -- Window function to see the safety rating and the average safety rating at the same time.
-SELECT street, safetyrating,
-AVG(safetyrating) OVER (PARTITION BY street) as "Average_safety_rating"
+SELECT street
+    , safetyrating
+    , AVG(safetyrating) OVER (PARTITION BY street) as "Average_safety_rating"
 FROM CityBikeLanes;
 
 -- safety rating of 4 or more should be labeled "Leave As-Is",
@@ -102,8 +106,9 @@ FROM CityBikeLanes;
 -- else "Improvements Needed"
 -- Again I used a window function to look at the safety rating and the average safty rating, then give each bike lane a recommendation to remove it, leave it, or improve the lane
 
-SELECT street, safetyrating,
-AVG(safetyrating) OVER (PARTITION BY street) as "Average_safety_rating", 
+SELECT street
+    , safetyrating
+    , AVG(safetyrating) OVER (PARTITION BY street) as "Average_safety_rating", 
 CASE
     WHEN AVG(safetyrating) OVER (PARTITION BY street) >= 4
         THEN 'Leave As-Is'
